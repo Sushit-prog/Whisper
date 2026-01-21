@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Whisper</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #111827;
+      --card-bg: #f9fafb;
+      --border: #e5e7eb;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --success: #10b981;
+      --gray: #6b7280;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --fg: #f1f5f9;
+        --card-bg: #1e293b;
+        --border: #334155;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: var(--gray);
+      font-size: 1.125rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      transition: transform 0.2s;
+    }
+
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+    }
+
+    .upload-area:hover {
+      border-color: var(--primary);
+      background: rgba(79, 70, 229, 0.03);
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+
+    .upload-text {
+      font-size: 1.125rem;
+      margin-bottom: 1rem;
+      color: var(--fg);
+    }
+
+    .upload-hint {
+      color: var(--gray);
+      font-size: 0.875rem;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .file-preview {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: none;
+    }
+
+    .file-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+    }
+
+    .file-name {
+      font-weight: 500;
+      word-break: break-all;
+    }
+
+    .file-actions button {
+      background: none;
+      border: none;
+      color: var(--gray);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .file-actions button:hover {
+      color: var(--primary);
+    }
+
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 2rem;
+    }
+
+    .spinner {
+      width: 2rem;
+      height: 2rem;
+      border: 3px solid rgba(79, 70, 229, 0.2);
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .result-section {
+      margin-top: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-content {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      font-size: 1rem;
+      white-space: pre-wrap;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+      h1 {
+        font-size: 1.75rem;
+      }
+      .card {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>MeetNotes AI</h1>
+      <p class="subtitle">Turn meeting recordings into structured notes — offline & private</p>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="upload-area" id="dropZone">
+          <div class="upload-icon">🎙️</div>
+          <p class="upload-text">Drag & drop your meeting recording</p>
+          <p class="upload-hint">Supports .wav and .mp3 (max 2 minutes recommended)</p>
+          <input type="file" id="fileInput" accept=".wav,.mp3" />
+          <button class="btn" id="browseBtn">Or Browse Files</button>
+        </div>
+
+        <div class="file-preview" id="filePreview">
+          <div class="file-info">
+            <span class="file-name" id="fileName">meeting.wav</span>
+            <span id="fileSize">1.2 MB</span>
+          </div>
+          <div class="file-actions">
+            <button id="removeFile">Remove</button>
+          </div>
+        </div>
+
+        <button class="btn" id="processBtn" style="width: 100%; margin-top: 1.5rem;" disabled>
+          Generate AI Notes
+        </button>
+      </div>
+
+      <div id="loading" class="card" style="display:none;">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Transcribing and summarizing your meeting...<br><small>(This may take 60–90 seconds on first run)</small></p>
+        </div>
+      </div>
+
+      <div id="result" class="card" style="display:none;">
+        <div class="result-section">
+          <h2 class="section-title">📝 Transcript</h2>
+          <div id="transcript" class="section-content"></div>
+        </div>
+        <div class="result-section">
+          <h2 class="section-title">🎯 Summary</h2>
+          <div id="summary" class="section-content"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const browseBtn = document.getElementById('browseBtn');
+    const processBtn = document.getElementById('processBtn');
+    const dropZone = document.getElementById('dropZone');
+    const loadingEl = document.getElementById('loading');
+    const resultEl = document.getElementById('result');
+    const filePreview = document.getElementById('filePreview');
+    const fileNameEl = document.getElementById('fileName');
+    const fileSizeEl = document.getElementById('fileSize');
+    const removeFileBtn = document.getElementById('removeFile');
+
+    let currentFile = null;
+
+    // Browse button click
+    browseBtn.addEventListener('click', () => fileInput.click());
+
+    // File selection
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Drag & drop
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#4f46e5';
+      dropZone.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.borderColor = '';
+      dropZone.style.backgroundColor = '';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '';
+      dropZone.style.backgroundColor = '';
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileSelect();
+      }
+    });
+
+    // Remove file
+    removeFileBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      currentFile = null;
+      filePreview.style.display = 'none';
+      processBtn.disabled = true;
+      processBtn.textContent = 'Generate AI Notes';
+    });
+
+    function handleFileSelect() {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      currentFile = file;
+      fileNameEl.textContent = file.name;
+      fileSizeEl.textContent = formatFileSize(file.size);
+      filePreview.style.display = 'block';
+      processBtn.disabled = false;
+      processBtn.textContent = 'Generate AI Notes';
+    }
+
+    // Process button
+    processBtn.addEventListener('click', processFile);
+
+    async function processFile() {
+      if (!currentFile) return;
+
+      const formData = new FormData();
+      formData.append('audio', currentFile);
+
+      // Show loading
+      loadingEl.style.display = 'block';
+      resultEl.style.display = 'none';
+
+      try {
+        const response = await fetch('/process', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.detail || 'Processing failed');
+        }
+
+        const data = await response.json();
+        
+        document.getElementById('transcript').textContent = data.transcript;
+        document.getElementById('summary').textContent = data.summary;
+        
+        loadingEl.style.display = 'none';
+        resultEl.style.display = 'block';
+      } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+        loadingEl.style.display = 'none';
+      }
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+  </script>
+</body>
+</html>
